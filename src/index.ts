@@ -12,11 +12,22 @@ const app = express();
 const PORT = parseInt(process.env.PORT || '3001', 10);
 const WEB_URL = process.env.WEB_URL || 'http://localhost:3000';
 
+// 허용할 origin 목록 (쉼표로 구분된 여러 도메인 지원)
+const ALLOWED_ORIGINS = WEB_URL.split(',').map((u) => u.trim());
+
 // JSON 파싱
 app.use(express.json());
 
-// CORS: WEB 서버(Next.js)에서만 접근 허용
-app.use(cors({ origin: WEB_URL }));
+// CORS: 허용된 WEB 서버에서만 접근 허용
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS: origin ${origin} not allowed`));
+    }
+  },
+}));
 
 // 라우터 연결
 app.use('/pdf', pdfRouter);
