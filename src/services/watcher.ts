@@ -5,6 +5,7 @@ import { promisify } from 'util';
 import db from '../db';
 import { v4 as uuidv4 } from 'uuid';
 import { createToken } from './token';
+import { extractAndStoreText, hasTextCache } from './textExtractor';
 
 const execFileAsync = promisify(execFile);
 
@@ -75,12 +76,26 @@ async function handleFile(filePath: string) {
   const { token } = createToken(fileId);
   const dbMs = Date.now() - dbStart;
 
+  // 검색용 텍스트 추출 (없을 때만)
+  let extractMs = 0;
+  if (!hasTextCache(fileId)) {
+    const extractStart = Date.now();
+    try {
+      const pages = await extractAndStoreText(fileId, filePath);
+      extractMs = Date.now() - extractStart;
+      console.log(`[watcher] 텍스트 추출 완료: ${pages}페이지`);
+    } catch (err) {
+      extractMs = Date.now() - extractStart;
+      console.error('[watcher] 텍스트 추출 실패:', err);
+    }
+  }
+
   const totalMs = Date.now() - totalStart;
-  const url = `${WEB_URL}/view?token=${token}`;
+  const url = `${WEB_URL.split(',')[0]}/view?token=${token}`;
 
   console.log(`\n📄 ${fileName}`);
   console.log(
-    `   처리 시간 : ${(totalMs / 1000).toFixed(2)}초 (Linearize: ${(linearizeMs / 1000).toFixed(2)}초, DB+토큰: ${(dbMs / 1000).toFixed(2)}초)`,
+    `   처리 시간 : ${(totalMs / 1000).toFixed(2)}초 (Linearize: ${(linearizeMs / 1000).toFixed(2)}초, DB+토큰: ${(dbMs / 1000).toFixed(2)}초, 텍스트추출: ${(extractMs / 1000).toFixed(2)}초)`,
   );
   console.log(`   뷰어 URL : ${url}\n`);
 

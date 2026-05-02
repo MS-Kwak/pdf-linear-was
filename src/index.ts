@@ -6,6 +6,7 @@ import cors from 'cors';
 import pdfRouter from './routes/pdf';
 import tokenRouter from './routes/token';
 import callbackRouter from './routes/callback';
+import searchRouter from './routes/search';
 import { startWatcher } from './services/watcher';
 
 const app = express();
@@ -32,6 +33,7 @@ app.use(cors({
 // 라우터 연결
 app.use('/pdf', pdfRouter);
 app.use('/', tokenRouter);
+app.use('/', searchRouter);
 app.use('/callback', callbackRouter);
 
 // 헬스체크
@@ -47,4 +49,5 @@ app.listen(PORT, () => {
   console.log(`   URL 발급:     POST /issue-url`);
   console.log(`   파일 목록:    GET  /files`);
   console.log(`   파일 등록:    POST /files/register`);
+  console.log(`   검색:         POST /search`);
 });

@@ -36,6 +36,16 @@ db.exec(`
     created_at  TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (file_id) REFERENCES pdf_files(id)
   );
+
+  CREATE TABLE IF NOT EXISTS pdf_pages (
+    file_id     TEXT NOT NULL,
+    page_index  INTEGER NOT NULL,
+    text        TEXT NOT NULL,
+    PRIMARY KEY (file_id, page_index),
+    FOREIGN KEY (file_id) REFERENCES pdf_files(id) ON DELETE CASCADE
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_pdf_pages_file_id ON pdf_pages(file_id);
 `);
 
 export default db;
