@@ -41,11 +41,25 @@ db.exec(`
     file_id     TEXT NOT NULL,
     page_index  INTEGER NOT NULL,
     text        TEXT NOT NULL,
+    items_json  TEXT NOT NULL DEFAULT '[]',
     PRIMARY KEY (file_id, page_index),
     FOREIGN KEY (file_id) REFERENCES pdf_files(id) ON DELETE CASCADE
   );
 
   CREATE INDEX IF NOT EXISTS idx_pdf_pages_file_id ON pdf_pages(file_id);
 `);
+
+// 기존 DB에 items_json 컬럼이 없으면 추가 (마이그레이션)
+try {
+  const hasColumn = db
+    .prepare("PRAGMA table_info('pdf_pages')")
+    .all()
+    .some((col) => (col as { name: string }).name === 'items_json');
+  if (!hasColumn) {
+    db.exec("ALTER TABLE pdf_pages ADD COLUMN items_json TEXT NOT NULL DEFAULT '[]'");
+  }
+} catch (err) {
+  console.warn('[db] items_json 마이그레이션 체크 실패:', err);
+}
 
 export default db;
