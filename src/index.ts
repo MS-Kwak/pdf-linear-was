@@ -20,15 +20,25 @@ const ALLOWED_ORIGINS = WEB_URL.split(',').map((u) => u.trim());
 app.use(express.json());
 
 // CORS: 허용된 WEB 서버에서만 접근 허용
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error(`CORS: origin ${origin} not allowed`));
-    }
-  },
-}));
+// PDF.js의 Range Request가 cross-origin 환경에서도 동작하도록
+// Range 요청 헤더 허용 + 응답의 Content-Range/Accept-Ranges 노출
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS: origin ${origin} not allowed`));
+      }
+    },
+    allowedHeaders: ['Content-Type', 'Range', 'Authorization'],
+    exposedHeaders: [
+      'Content-Range',
+      'Accept-Ranges',
+      'Content-Length',
+    ],
+  }),
+);
 
 // 라우터 연결
 app.use('/pdf', pdfRouter);
