@@ -4,3 +4,5 @@ db/
 .env
 *.db
 .env.example
+*.db-wal
+*.db-shm
