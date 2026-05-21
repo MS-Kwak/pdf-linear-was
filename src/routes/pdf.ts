@@ -10,6 +10,32 @@ function fmtKB(bytes: number): string {
 }
 
 /**
+ * GET /pdf-info/:token
+ * 파일 크기와 이름만 빠르게 반환. PDF.js 가 length 옵션으로 사용해
+ * "파일 크기 탐색용 초기 GET"(abort되는 200 요청)을 건너뛰도록 한다.
+ */
+router.get(
+  '/info/:token',
+  authMiddleware,
+  (req: Request, res: Response): void => {
+    const { fileId } = req.tokenPayload!;
+    const pdfFile = getPdfById(fileId);
+
+    if (!pdfFile) {
+      res.status(404).json({ error: 'PDF 파일을 찾을 수 없습니다.' });
+      return;
+    }
+
+    const { size } = fs.statSync(pdfFile.file_path);
+    res.set('Timing-Allow-Origin', '*');
+    res.json({
+      size,
+      fileName: pdfFile.file_name,
+    });
+  },
+);
+
+/**
  * GET /pdf/:token
  * 토큰 검증 후 PDF 스트리밍 (Range Request 지원)
  *
