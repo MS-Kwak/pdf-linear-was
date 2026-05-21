@@ -56,6 +56,9 @@ router.get(
         'Accept-Ranges': 'bytes',
         'Content-Length': chunkSize,
         'Content-Type': 'application/pdf',
+        // 크로스오리진(웹↔WAS)에서 브라우저가 transferSize·encodedBodySize 같은
+        // 타이밍/사이즈 정보를 노출하도록 허용. (StatsOverlay 시연용)
+        'Timing-Allow-Origin': '*',
       });
 
       stream.pipe(res);
@@ -70,6 +73,7 @@ router.get(
         'Content-Length': fileSize,
         'Content-Type': 'application/pdf',
         'Accept-Ranges': 'bytes',
+        'Timing-Allow-Origin': '*',
       });
 
       stream.pipe(res);
